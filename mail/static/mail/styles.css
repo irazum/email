@@ -1,0 +1,30 @@
+textarea {
+    min-height: 400px;
+}
+
+// emails-view
+#emails-container {
+				margin: 5px;
+				padding: 0px;
+}
+#emails-container tr {
+    border: 1px solid grey;
+}
+#emails-container tr:hover {
+    border: 1px solid blue;
+}
+
+#emails-container .table {
+    margin: 0px;
+}
+
+tr > .sender {
+    width:20vw;
+}
+tr > .subject {
+    width:60vw;
+
+}
+tr > .timestamp {
+    width:20vw;
+}
