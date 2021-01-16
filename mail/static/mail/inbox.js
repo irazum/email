@@ -23,9 +23,8 @@ function compose_email() {
   document.querySelector('#compose-body').value = '';
 
   // submit handler (my c)
-  document.querySelector('#compose-form').onsubmit = compose_submit_handler()
+  document.querySelector('#compose-form').onsubmit = compose_submit_handler;
 }
-
 
 // used in compose_email
 function compose_submit_handler() {
@@ -54,7 +53,6 @@ function compose_submit_handler() {
 
 
 function load_mailbox(mailbox) {
-  
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
@@ -63,18 +61,27 @@ function load_mailbox(mailbox) {
   //document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
     document.querySelector('#emails-view > h3').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
-  // my code
+  // send request to server and replace emails on html to received emails from json data (my c)
   fetch('/emails/inbox/')
   .then(response => response.json())
-  .then(emails => {
+  .then(emails => emails_data_handler(emails))
+}
+
+// used in load_mailbox
+function emails_data_handler(emails) {
     // create new table element
     const table = document.createElement('table');
     table.className = 'table'
-    // fill in the new table element
+    // add each email like a row in the new table element
     emails.forEach(element => {
-        // create table row
+        // create the table row
         const tr = document.createElement('tr');
-        // create table data and append it in row
+        // append read data in tr and change background-color
+        //tr.setAttribute("data-read", element['read']);
+        if (element['read']) {
+            tr.style.backgroundColor = 'grey';
+        }
+        // create td elements and append its in the row
         const names = ['sender', 'subject', 'timestamp'];
         for (const name of names) {
             td = document.createElement('td');
@@ -82,11 +89,18 @@ function load_mailbox(mailbox) {
             td.innerHTML = element[name];
             tr.appendChild(td);
         }
+        // add Event handler to the row
+        tr.addEventListener('click', (event, email_id=element['id']) => email_click_handler(email_id));
         // append table row in new table element
         table.appendChild(tr);
     })
     // replace emails data
     let item = document.querySelector('#emails-container');
     item.replaceChild(table, item.firstChild);
-  })
+
+}
+
+
+function email_click_handler(id) {
+    console.log(`this is ${id}`);
 }

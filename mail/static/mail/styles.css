@@ -12,6 +12,7 @@ textarea {
 }
 #emails-container tr:hover {
     border: 1px solid blue;
+    cursor: pointer;
 }
 
 #emails-container .table {
