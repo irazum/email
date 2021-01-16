@@ -11,16 +11,30 @@ document.addEventListener('DOMContentLoaded', function() {
 
 });
 
-function compose_email() {
+function compose_email(event, email=false) {
 
   // Show compose view and hide other views
+  console.log(email);
+
   document.querySelector('#emails-view').style.display = 'none';
+  document.querySelector('#view-email').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
 
-  // Clear out composition fields
-  document.querySelector('#compose-recipients').value = '';
-  document.querySelector('#compose-subject').value = '';
-  document.querySelector('#compose-body').value = '';
+  // Clear out composition fields or fill in for reply-button
+  if (email === false) {
+    document.querySelector('#compose-recipients').value = '';
+    document.querySelector('#compose-subject').value = '';
+    document.querySelector('#compose-body').value = '';
+  }
+  else {
+    document.querySelector('#compose-recipients').value = email.sender;
+    if (email.subject.slice(0, 3) !== "Re:") {
+        document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+    }
+    else document.querySelector('#compose-subject').value = email.subject;
+    body = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}\n`
+    document.querySelector('#compose-body').value = body;
+  }
 
   // submit handler (my c)
   document.querySelector('#compose-form').onsubmit = compose_submit_handler;
@@ -56,6 +70,7 @@ function load_mailbox(mailbox) {
   // Show the mailbox and hide other views
   document.querySelector('#emails-view').style.display = 'block';
   document.querySelector('#compose-view').style.display = 'none';
+  document.querySelector('#view-email').style.display = 'none';
 
   // Show the mailbox name
   //document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
@@ -125,21 +140,35 @@ function sent_handler(tr, element) {
         td.className = name;
         if (name == 'recipients') {
             // create recipients-string
-            data = element.recipients[0]
-            element.recipients.slice(1).forEach(recipient => {
-                data += `, ${recipient}`
-            })
-            td.innerHTML = data
+            td.innerHTML = `to: ${element.recipients.join(', ')}`;
         }
         else {
             td.innerHTML = element[name];
         }
-
         tr.appendChild(td);
     }
 }
 
 
+// used in emails_data_handler
 function email_click_handler(id) {
     console.log(`this is ${id}`);
+
+    //hide and show blocks
+    document.querySelector('#emails-view').style.display = 'none';
+    document.querySelector('#view-email').style.display = 'block';
+    // send request to server
+    fetch(`/emails/${id}/`)
+    .then(request => request.json())
+    .then(email => {
+        document.querySelector('#view-email > h3').innerHTML = email.subject;
+        document.querySelector('#email-sender').innerHTML = email.sender;
+        document.querySelector('#email-recipients').innerHTML = `to: ${email.recipients.join(', ')}`;
+        document.querySelector('#email-body').innerHTML = email.body;
+        // reply handler
+        document.querySelector('#reply-button').addEventListener(
+            'click',
+            (event, mail=email) => compose_email(event, mail)
+        );
+    })
 }
