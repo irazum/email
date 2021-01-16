@@ -62,13 +62,13 @@ function load_mailbox(mailbox) {
     document.querySelector('#emails-view > h3').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
   // send request to server and replace emails on html to received emails from json data (my c)
-  fetch('/emails/inbox/')
+  fetch(`/emails/${mailbox}/`)
   .then(response => response.json())
-  .then(emails => emails_data_handler(emails))
+  .then(emails => emails_data_handler(emails, mailbox))
 }
 
 // used in load_mailbox
-function emails_data_handler(emails) {
+function emails_data_handler(emails, mailbox) {
     // create new table element
     const table = document.createElement('table');
     table.className = 'table'
@@ -81,14 +81,16 @@ function emails_data_handler(emails) {
         if (element['read']) {
             tr.style.backgroundColor = 'grey';
         }
-        // create td elements and append its in the row
-        const names = ['sender', 'subject', 'timestamp'];
-        for (const name of names) {
-            td = document.createElement('td');
-            td.className = name;
-            td.innerHTML = element[name];
-            tr.appendChild(td);
+        console.log(element)
+
+        // fill in the tr with data
+        if (mailbox == 'inbox' || mailbox == 'archive') {
+            inbox_handler(tr, element)
         }
+        else if (mailbox == 'sent') {
+            sent_handler(tr, element)
+        }
+
         // add Event handler to the row
         tr.addEventListener('click', (event, email_id=element['id']) => email_click_handler(email_id));
         // append table row in new table element
@@ -98,6 +100,43 @@ function emails_data_handler(emails) {
     let item = document.querySelector('#emails-container');
     item.replaceChild(table, item.firstChild);
 
+}
+
+
+// used in emails_data_handler
+function inbox_handler(tr, element) {
+    // create td elements and append its in the row
+    const names = ['sender', 'subject', 'timestamp'];
+    for (const name of names) {
+        td = document.createElement('td');
+        td.className = name;
+        td.innerHTML = element[name];
+        tr.appendChild(td);
+    }
+}
+
+
+// used in emails_data_handler
+function sent_handler(tr, element) {
+    // create td elements and append its in the row
+    const names = ['recipients', 'subject', 'timestamp'];
+    for (const name of names) {
+        td = document.createElement('td');
+        td.className = name;
+        if (name == 'recipients') {
+            // create recipients-string
+            data = element.recipients[0]
+            element.recipients.slice(1).forEach(recipient => {
+                data += `, ${recipient}`
+            })
+            td.innerHTML = data
+        }
+        else {
+            td.innerHTML = element[name];
+        }
+
+        tr.appendChild(td);
+    }
 }
 
 

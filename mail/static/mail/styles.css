@@ -19,7 +19,7 @@ textarea {
     margin: 0px;
 }
 
-tr > .sender {
+tr > .sender, recipients {
     width:20vw;
 }
 tr > .subject {
