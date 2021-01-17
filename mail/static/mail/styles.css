@@ -2,7 +2,7 @@ textarea {
     min-height: 400px;
 }
 
-// emails-view
+/* emails-view */
 #emails-container {
 				margin: 5px;
 				padding: 0px;
@@ -29,3 +29,10 @@ tr > .subject {
 tr > .timestamp {
     width:20vw;
 }
+
+
+/*view-email */
+#email-sender, #email-recipients, #email-body, #email-buttons {
+    margin-left:10px;
+}
+

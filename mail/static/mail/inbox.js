@@ -80,6 +80,9 @@ function load_mailbox(mailbox) {
   fetch(`/emails/${mailbox}/`)
   .then(response => response.json())
   .then(emails => emails_data_handler(emails, mailbox))
+  .catch(error => {
+    console.log('Error:', error);
+    });
 }
 
 // used in load_mailbox
@@ -96,8 +99,6 @@ function emails_data_handler(emails, mailbox) {
         if (element['read']) {
             tr.style.backgroundColor = 'grey';
         }
-        console.log(element)
-
         // fill in the tr with data
         if (mailbox == 'inbox' || mailbox == 'archive') {
             inbox_handler(tr, element)
@@ -152,8 +153,6 @@ function sent_handler(tr, element) {
 
 // used in emails_data_handler
 function email_click_handler(id) {
-    console.log(`this is ${id}`);
-
     //hide and show blocks
     document.querySelector('#emails-view').style.display = 'none';
     document.querySelector('#view-email').style.display = 'block';
@@ -161,8 +160,10 @@ function email_click_handler(id) {
     fetch(`/emails/${id}/`)
     .then(request => request.json())
     .then(email => {
-        document.querySelector('#view-email > h3').innerHTML = email.subject;
-        document.querySelector('#email-sender').innerHTML = email.sender;
+        // fill in view-email block
+        document.querySelector('#email-head > h3').innerHTML = email.subject;
+        document.querySelector('#email-head > div').innerHTML = email.timestamp;
+        document.querySelector('#email-sender > h5').innerHTML = email.sender;
         document.querySelector('#email-recipients').innerHTML = `to: ${email.recipients.join(', ')}`;
         document.querySelector('#email-body').innerHTML = email.body;
         // reply handler
@@ -170,5 +171,18 @@ function email_click_handler(id) {
             'click',
             (event, mail=email) => compose_email(event, mail)
         );
+        // mark email as read
+        fetch(`/emails/${id}/`, {
+            method: 'PUT',
+            body: JSON.stringify({
+                'read': true
+            })
+        })
+        .catch(error => {
+        console.log('Error:', error);
+        });
     })
+    .catch(error => {
+    console.log('Error:', error);
+    });
 }

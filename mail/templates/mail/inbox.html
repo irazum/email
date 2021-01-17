@@ -37,10 +37,13 @@
 
 
     <div id="view-email">
-        <h3></h3>
-        <div id="email-sender"></div>
+        <div id="email-head" class="d-flex flex-row justify-content-between">
+            <h3 class="p-2"></h3>
+            <div class="p-2"></div>
+        </div>
+        <div id="email-sender"><h5></h5></div>
         <div id="email-recipients"></div>
-        <div id="email-body"></div>
+        <br><div id="email-body"></div>
         <div id="email-buttons"><button id="reply-button" class="btn btn-outline-primary btn-sm">reply</button></div>
     </div>
 {% endblock %}
