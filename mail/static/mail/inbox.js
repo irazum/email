@@ -93,12 +93,7 @@ function emails_data_handler(emails, mailbox) {
     // add each email like a row in the new table element
     emails.forEach(element => {
         // create the table row
-        const tr = document.createElement('tr');
-        // append read data in tr and change background-color
-        //tr.setAttribute("data-read", element['read']);
-        if (element['read']) {
-            tr.style.backgroundColor = 'grey';
-        }
+        const tr = create_table_row(element['read']);
         // fill in the tr with data
         if (mailbox == 'inbox' || mailbox == 'archive') {
             inbox_handler(tr, element)
@@ -116,6 +111,53 @@ function emails_data_handler(emails, mailbox) {
     let item = document.querySelector('#emails-container');
     item.replaceChild(table, item.firstChild);
 
+}
+
+
+// return table row element
+function create_table_row(read) {
+    const tr = document.createElement('tr');
+    // append email mark element in tr
+    tr.appendChild(email_mark_element());
+    // append read data in tr and change background-color
+    if (read) {
+        tr.style.backgroundColor = 'grey';
+        tr.setAttribute('data-backgroundColor', 'grey');
+    }
+    else {
+        tr.setAttribute('data-backgroundColor', 'white');
+    }
+    return tr
+}
+
+
+// return td mark element
+function email_mark_element() {
+    td = document.createElement('td');
+    td.innerHTML = "&#9744;";
+    td.setAttribute('data-click', 0);
+    td.addEventListener('click', (event) => {
+        mark = event.currentTarget;
+        if (mark.getAttribute('data-click') == 1) {
+            // change icon and data-click attribute
+            mark.setAttribute('data-click', 0);
+            mark.innerHTML = "&#9745;";
+            // change color marked row
+            mark.parentElement.style.backgroundColor = 'blue';
+            // hide top navbar?
+        }
+        else {
+            // change icon and data-click attribute
+            mark.setAttribute('data-click', 1);
+            mark.innerHTML = "&#9744;";
+            // back color marked row
+            mark.parentElement.style.backgroundColor = mark.parentElement.getAttribute('data-backgroundColor');
+            //show top navbar and put data
+        }
+        // stop event
+        event.stopPropagation()
+    })
+    return td
 }
 
 
@@ -172,15 +214,21 @@ function email_click_handler(id) {
             (event, mail=email) => compose_email(event, mail)
         );
         // mark email as read
-        fetch(`/emails/${id}/`, {
-            method: 'PUT',
-            body: JSON.stringify({
-                'read': true
-            })
+        email_read_marker(id);
+    })
+    .catch(error => {
+    console.log('Error:', error);
+    });
+}
+
+
+// put request on server that email read
+function email_read_marker(id) {
+    fetch(`/emails/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            'read': true
         })
-        .catch(error => {
-        console.log('Error:', error);
-        });
     })
     .catch(error => {
     console.log('Error:', error);
