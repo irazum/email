@@ -36,3 +36,19 @@ tr > .timestamp {
     margin-left:10px;
 }
 
+
+/*mark panel*/
+#archive-button, #archive-button-email {
+    color:blue;
+    margin:5px 20px 5px 15px;
+}
+
+#archive-button:hover, #archive-button-email:hover {
+    cursor: pointer;
+    color: grey;
+}
+
+#mark-nav, #mark-nav-email {
+    border-bottom: 1px solid grey;
+    border-top: 1px solid grey;
+}

@@ -14,8 +14,6 @@ document.addEventListener('DOMContentLoaded', function() {
 function compose_email(event, email=false) {
 
   // Show compose view and hide other views
-  console.log(email);
-
   document.querySelector('#emails-view').style.display = 'none';
   document.querySelector('#view-email').style.display = 'none';
   document.querySelector('#compose-view').style.display = 'block';
@@ -67,21 +65,23 @@ function compose_submit_handler() {
 
 
 function load_mailbox(mailbox) {
-  // Show the mailbox and hide other views
-  document.querySelector('#emails-view').style.display = 'block';
-  document.querySelector('#compose-view').style.display = 'none';
-  document.querySelector('#view-email').style.display = 'none';
+    // Show the mailbox and hide other views
+    document.querySelector('#emails-view').style.display = 'block';
+    document.querySelector('#compose-view').style.display = 'none';
+    document.querySelector('#view-email').style.display = 'none';
 
-  // Show the mailbox name
-  //document.querySelector('#emails-view').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
+    // Show the mailbox name
     document.querySelector('#emails-view > h3').innerHTML = `<h3>${mailbox.charAt(0).toUpperCase() + mailbox.slice(1)}</h3>`;
 
-  // send request to server and replace emails on html to received emails from json data (my c)
-  fetch(`/emails/${mailbox}/`)
-  .then(response => response.json())
-  .then(emails => emails_data_handler(emails, mailbox))
-  .catch(error => {
-    console.log('Error:', error);
+    // add/del mark buttons
+    mark_buttons_handler1(mailbox);
+
+    // send request to server and replace emails on html to received emails from json data (my c)
+    fetch(`/emails/${mailbox}/`)
+    .then(response => response.json())
+    .then(emails => emails_data_handler(emails, mailbox))
+    .catch(error => {
+        console.log('Error:', error);
     });
 }
 
@@ -93,7 +93,7 @@ function emails_data_handler(emails, mailbox) {
     // add each email like a row in the new table element
     emails.forEach(element => {
         // create the table row
-        const tr = create_table_row(element['read']);
+        const tr = create_table_row(element);
         // fill in the tr with data
         if (mailbox == 'inbox' || mailbox == 'archive') {
             inbox_handler(tr, element)
@@ -110,17 +110,17 @@ function emails_data_handler(emails, mailbox) {
     // replace emails data
     let item = document.querySelector('#emails-container');
     item.replaceChild(table, item.firstChild);
-
 }
 
 
 // return table row element
-function create_table_row(read) {
+function create_table_row(element) {
     const tr = document.createElement('tr');
+    tr.setAttribute("data-id", element.id)
     // append email mark element in tr
     tr.appendChild(email_mark_element());
     // append read data in tr and change background-color
-    if (read) {
+    if (element.read) {
         tr.style.backgroundColor = 'grey';
         tr.setAttribute('data-backgroundColor', 'grey');
     }
@@ -138,9 +138,9 @@ function email_mark_element() {
     td.setAttribute('data-click', 0);
     td.addEventListener('click', (event) => {
         mark = event.currentTarget;
-        if (mark.getAttribute('data-click') == 1) {
+        if (mark.getAttribute('data-click') == 0) {
             // change icon and data-click attribute
-            mark.setAttribute('data-click', 0);
+            mark.setAttribute('data-click', 1);
             mark.innerHTML = "&#9745;";
             // change color marked row
             mark.parentElement.style.backgroundColor = 'blue';
@@ -148,7 +148,7 @@ function email_mark_element() {
         }
         else {
             // change icon and data-click attribute
-            mark.setAttribute('data-click', 1);
+            mark.setAttribute('data-click', 0);
             mark.innerHTML = "&#9744;";
             // back color marked row
             mark.parentElement.style.backgroundColor = mark.parentElement.getAttribute('data-backgroundColor');
@@ -162,7 +162,7 @@ function email_mark_element() {
 
 
 // used in emails_data_handler
-function inbox_handler(tr, element) {
+function inbox_handler(tr, element, mailbox) {
     // create td elements and append its in the row
     const names = ['sender', 'subject', 'timestamp'];
     for (const name of names) {
@@ -215,6 +215,14 @@ function email_click_handler(id) {
         );
         // mark email as read
         email_read_marker(id);
+        // mark buttons handler
+        if (email.sender == document.querySelector('#user-email').innerHTML) {
+            document.querySelector('#mark-nav-email').style.display = 'none';
+        }
+        else {
+            document.querySelector('#mark-nav-email').style.display = 'flex';
+            email_buttons_handler('email', email);
+        }
     })
     .catch(error => {
     console.log('Error:', error);
@@ -234,3 +242,97 @@ function email_read_marker(id) {
     console.log('Error:', error);
     });
 }
+
+
+//
+function email_buttons_handler(mailbox, email) {
+    // create archive-button
+    const li = document.createElement('li');
+    li.className = "nav-item-email";
+    li.id = "archive-button-email";
+    document.querySelector("#mark-nav-email").replaceChild(li, document.querySelector("#archive-button-email"));
+
+    if (email.archived) document.querySelector('#archive-button-email').innerHTML = 'Unarchive';
+    else document.querySelector('#archive-button-email').innerHTML = 'Archive';
+
+    document.querySelector('#archive-button-email').addEventListener(
+    'click',
+     function (event, m=mailbox, arch=email.archived, em=email) {
+        archive_click_handler(m, arch, em);
+    });
+}
+
+
+function mark_buttons_handler1(mailbox) {
+     // create archive-button
+    const li = document.createElement('li');
+    li.className = "nav-item";
+    li.id = "archive-button";
+    document.querySelector("#mark-nav").replaceChild(li, document.querySelector("#archive-button"));
+
+    if (mailbox == 'inbox') {
+        document.querySelector('#mark-nav').style.display = 'flex';
+        document.querySelector('#archive-button').innerHTML = 'Archive';
+        mark_buttons_handler2(mailbox);
+    }
+    else if (mailbox == 'archive') {
+        document.querySelector('#mark-nav').style.display = 'flex';
+        document.querySelector('#archive-button').innerHTML = 'Unarchive';
+        mark_buttons_handler2(mailbox, true);
+    }
+    else if (mailbox == 'sent') {
+        document.querySelector('#mark-nav').style.display = 'none';
+    }
+}
+
+
+
+function mark_buttons_handler2(mailbox, archived=false, email=null) {
+    // add EventListener
+    document.querySelector('#archive-button').addEventListener(
+    'click',
+     function (event, pn=mailbox, arch=archived, el=email) {
+        archive_click_handler(pn, arch, el);
+    });
+
+    // another buttons
+}
+
+
+function archive_click_handler(mailbox, archived, email) {
+    if (mailbox == 'inbox' || mailbox == 'archive') {
+        let rows = Array.prototype.slice.call(document.querySelector('#emails-container > table').childNodes);
+        let i = 0
+        rows.forEach(row => {
+            i += 1
+            if (row.firstChild.getAttribute('data-click') == 1) {
+                // archive email
+                email_archive_marker(row.getAttribute("data-id"), !archived);
+            }
+        })
+    }
+
+    else if (mailbox == 'email') {
+        // archive email
+        email_archive_marker(email.id, !email.archived)
+    }
+}
+
+
+// put request on server that email read
+function email_archive_marker(id, value) {
+
+    fetch(`/emails/${id}/`, {
+        method: 'PUT',
+        body: JSON.stringify({
+            'archived': value
+        })
+    })
+    // load inbox page
+    .then(response => load_mailbox('inbox'))
+    .catch(error => {
+    console.log('Error:', error);
+    });
+}
+
+

@@ -2,7 +2,7 @@
 {% load static %}
 
 {% block body %}
-    <h2>{{ request.user.email }}</h2>
+    <h2 id="user-email">{{ request.user.email }}</h2>
 
     <button class="btn btn-sm btn-outline-primary" id="inbox">Inbox</button>
     <button class="btn btn-sm btn-outline-primary" id="compose">Compose</button>
@@ -13,6 +13,10 @@
 
     <div id="emails-view">
         <h3></h3>
+         <ul class="nav" id="mark-nav">
+            <li class="nav-item" id="archive-button">
+            </li>
+        </ul>
         <div id='emails-container'>
 			<table class='table'></table>
 		</div>
@@ -37,6 +41,12 @@
 
 
     <div id="view-email">
+
+         <ul class="nav" id="mark-nav-email" >
+            <li class="nav-item" id="archive-button-email">
+            </li>
+        </ul>
+
         <div id="email-head" class="d-flex flex-row justify-content-between">
             <h3 class="p-2"></h3>
             <div class="p-2"></div>
