@@ -1,3 +1,7 @@
+const mark_color = "#C2DBFF";
+const read_color = "#E9ECEF";
+
+
 document.addEventListener('DOMContentLoaded', function() {
 
   // Use buttons to toggle between views
@@ -28,18 +32,23 @@ function compose_email(event, email=false) {
     document.querySelector('#compose-recipients').value = email.sender;
     if (email.subject.slice(0, 3) !== "Re:") {
         document.querySelector('#compose-subject').value = `Re: ${email.subject}`;
+    } else {
+        document.querySelector('#compose-subject').value = email.subject;
     }
-    else document.querySelector('#compose-subject').value = email.subject;
-    body = `On ${email.timestamp} ${email.sender} wrote:\n${email.body}\n`
-    document.querySelector('#compose-body').value = body;
+    body_value = `«On ${email.timestamp} ${email.sender} wrote:\n${email.body}»\n`
+    body = document.querySelector('#compose-body');
+    document.querySelector('#compose-body').value = body_value;
+
   }
 
   // submit handler (my c)
   document.querySelector('#compose-form').onsubmit = compose_submit_handler;
 }
 
-// used in compose_email
+
 function compose_submit_handler() {
+    console.log(document.querySelector('#compose-body').value)
+
   fetch('/emails', {
       method: 'POST',
       body: JSON.stringify({
@@ -64,6 +73,7 @@ function compose_submit_handler() {
 }
 
 
+
 function load_mailbox(mailbox) {
     // Show the mailbox and hide other views
     document.querySelector('#emails-view').style.display = 'block';
@@ -79,14 +89,14 @@ function load_mailbox(mailbox) {
     // send request to server and replace emails on html to received emails from json data (my c)
     fetch(`/emails/${mailbox}/`)
     .then(response => response.json())
-    .then(emails => emails_data_handler(emails, mailbox))
+    .then(emails => emails_handler(emails, mailbox))
     .catch(error => {
         console.log('Error:', error);
     });
 }
 
-// used in load_mailbox
-function emails_data_handler(emails, mailbox) {
+
+function emails_handler(emails, mailbox) {
     // create new table element
     const table = document.createElement('table');
     table.className = 'table'
@@ -115,14 +125,16 @@ function emails_data_handler(emails, mailbox) {
 
 // return table row element
 function create_table_row(element) {
+    /* return row_element*/
     const tr = document.createElement('tr');
     tr.setAttribute("data-id", element.id)
     // append email mark element in tr
     tr.appendChild(email_mark_element());
     // append read data in tr and change background-color
     if (element.read) {
-        tr.style.backgroundColor = 'grey';
-        tr.setAttribute('data-backgroundColor', 'grey');
+        tr.style.backgroundColor = read_color;
+        // add data-backgroundColor, used that return last state in email_mark_element -func
+        tr.setAttribute('data-backgroundColor', read_color);
     }
     else {
         tr.setAttribute('data-backgroundColor', 'white');
@@ -131,8 +143,8 @@ function create_table_row(element) {
 }
 
 
-// return td mark element
 function email_mark_element() {
+    /* return marker */
     td = document.createElement('td');
     td.innerHTML = "&#9744;";
     td.setAttribute('data-click', 0);
@@ -143,7 +155,7 @@ function email_mark_element() {
             mark.setAttribute('data-click', 1);
             mark.innerHTML = "&#9745;";
             // change color marked row
-            mark.parentElement.style.backgroundColor = 'blue';
+            mark.parentElement.style.backgroundColor = mark_color;
             // hide top navbar?
         }
         else {
@@ -161,7 +173,6 @@ function email_mark_element() {
 }
 
 
-// used in emails_data_handler
 function inbox_handler(tr, element, mailbox) {
     // create td elements and append its in the row
     const names = ['sender', 'subject', 'timestamp'];
@@ -174,7 +185,6 @@ function inbox_handler(tr, element, mailbox) {
 }
 
 
-// used in emails_data_handler
 function sent_handler(tr, element) {
     // create td elements and append its in the row
     const names = ['recipients', 'subject', 'timestamp'];
@@ -193,7 +203,6 @@ function sent_handler(tr, element) {
 }
 
 
-// used in emails_data_handler
 function email_click_handler(id) {
     //hide and show blocks
     document.querySelector('#emails-view').style.display = 'none';
@@ -207,7 +216,10 @@ function email_click_handler(id) {
         document.querySelector('#email-head > div').innerHTML = email.timestamp;
         document.querySelector('#email-sender > h5').innerHTML = email.sender;
         document.querySelector('#email-recipients').innerHTML = `to: ${email.recipients.join(', ')}`;
-        document.querySelector('#email-body').innerHTML = email.body;
+        // replace \n on <br> and add body data
+        body_data = email.body.replace(/\n/g, '<br>');
+        document.querySelector('#email-body').innerHTML = body_data;
+
         // reply handler
         document.querySelector('#reply-button').addEventListener(
             'click',
@@ -230,7 +242,6 @@ function email_click_handler(id) {
 }
 
 
-// put request on server that email read
 function email_read_marker(id) {
     fetch(`/emails/${id}/`, {
         method: 'PUT',
@@ -244,11 +255,10 @@ function email_read_marker(id) {
 }
 
 
-//
 function email_buttons_handler(mailbox, email) {
     // create archive-button
     const li = document.createElement('li');
-    li.className = "nav-item-email";
+    li.className = "nav-item";
     li.id = "archive-button-email";
     document.querySelector("#mark-nav-email").replaceChild(li, document.querySelector("#archive-button-email"));
 
@@ -281,10 +291,9 @@ function mark_buttons_handler1(mailbox) {
         mark_buttons_handler2(mailbox, true);
     }
     else if (mailbox == 'sent') {
-        document.querySelector('#mark-nav').style.display = 'none';
+        document.querySelector('#archive-button').style.display = 'none';
     }
 }
-
 
 
 function mark_buttons_handler2(mailbox, archived=false, email=null) {
@@ -319,9 +328,8 @@ function archive_click_handler(mailbox, archived, email) {
 }
 
 
-// put request on server that email read
 function email_archive_marker(id, value) {
-
+    /*put request on server that email read*/
     fetch(`/emails/${id}/`, {
         method: 'PUT',
         body: JSON.stringify({

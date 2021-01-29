@@ -1,17 +1,19 @@
-textarea {
-    min-height: 400px;
+#compose-body {
+    min-height: 250px;
 }
 
 /* emails-view */
 #emails-container {
-				margin: 5px;
-				padding: 0px;
+    margin: 5px;
+    padding: 0px;
 }
 #emails-container tr {
-    border: 1px solid grey;
+    border: 1px solid rgb(220, 220, 220);
+    border-radius: 10%;
 }
 #emails-container tr:hover {
-    border: 1px solid blue;
+    border-style: double;
+    border-color: Silver Silver LightSlateGray;
     cursor: pointer;
 }
 
@@ -38,12 +40,13 @@ tr > .timestamp {
 
 
 /*mark panel*/
-#archive-button, #archive-button-email {
+
+.nav-item {
     color:blue;
     margin:5px 20px 5px 15px;
 }
 
-#archive-button:hover, #archive-button-email:hover {
+.nav-item:hover {
     cursor: pointer;
     color: grey;
 }
