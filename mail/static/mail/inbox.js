@@ -47,8 +47,6 @@ function compose_email(event, email=false) {
 
 
 function compose_submit_handler() {
-    console.log(document.querySelector('#compose-body').value)
-
   fetch('/emails', {
       method: 'POST',
       body: JSON.stringify({
@@ -57,17 +55,18 @@ function compose_submit_handler() {
         body: document.querySelector('#compose-body').value
       })
     })
-  .then(response => response.json())
-  .then(result => {
-  // Print result
-    console.log(result);
+  .then(response => {
+    console.log(`Response Status: ${response.status}`);
+    if (response.status === 400) {
+        alert("Use registered in this mail-server email addresses!");
+        recipients: document.querySelector('#compose-recipients').value = "";
+    } else {
+        load_mailbox('sent');
+    }
   })
-  // Catch any errors and log them to the console
   .catch(error => {
     console.log('Error:', error);
     });
-  //load mailbox
-  load_mailbox('sent')
   // Prevent default submission
   return false;
 }
