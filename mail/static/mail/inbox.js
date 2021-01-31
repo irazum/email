@@ -2,17 +2,45 @@ const mark_color = "#C2DBFF";
 const read_color = "#E9ECEF";
 
 
+// back button handler
+window.onpopstate = function(event) {
+    page = event.state.page;
+    if (page === "inbox" || page === "sent" || page === "archive") {
+        console.log(page);
+        load_mailbox(page);
+    }
+    else if (page === "compose") {
+        compose_email();
+    }
+    else if (page === "email") {
+        email_click_handler(event.state.id);
+    }
+}
+
 document.addEventListener('DOMContentLoaded', function() {
 
   // Use buttons to toggle between views
-  document.querySelector('#inbox').addEventListener('click', () => load_mailbox('inbox'));
-  document.querySelector('#sent').addEventListener('click', () => load_mailbox('sent'));
-  document.querySelector('#archived').addEventListener('click', () => load_mailbox('archive'));
-  document.querySelector('#compose').addEventListener('click', compose_email);
+  document.querySelector('#inbox').addEventListener('click', () => {
+    // save state
+    history.pushState({page: "inbox"}, "", "/inbox");
+    // load page
+    load_mailbox('inbox');
+  });
+  document.querySelector('#sent').addEventListener('click', () => {
+    history.pushState({page: "sent"}, "", "/sent");
+    load_mailbox('sent');
+  });
+  document.querySelector('#archived').addEventListener('click', () => {
+    history.pushState({page: "archive"}, "", "/archive");
+    load_mailbox('archive');
+  });
+  document.querySelector('#compose').addEventListener('click', () => {
+    history.pushState({page: "compose"}, "", "/compose");
+    compose_email();
+  });
 
   // By default, load the inbox
   load_mailbox('inbox');
-
 });
 
 function compose_email(event, email=false) {
@@ -112,7 +140,11 @@ function emails_handler(emails, mailbox) {
         }
 
         // add Event handler to the row
-        tr.addEventListener('click', (event, email_id=element['id']) => email_click_handler(email_id));
+        tr.addEventListener('click', (event, email_id=element['id']) => {
+            // save state
+            history.pushState({page: "email", id: email_id}, "", `/email/${email_id}`);
+            email_click_handler(email_id);
+        });
         // append table row in new table element
         table.appendChild(tr);
     })
@@ -310,13 +342,27 @@ function mark_buttons_handler2(mailbox, archived=false, email=null) {
 function archive_click_handler(mailbox, archived, email) {
     if (mailbox == 'inbox' || mailbox == 'archive') {
         let rows = Array.prototype.slice.call(document.querySelector('#emails-container > table').childNodes);
-        let i = 0
+
+        let mark_rows = [];
+
         rows.forEach(row => {
-            i += 1
+            // check mark (first td-element)
             if (row.firstChild.getAttribute('data-click') == 1) {
                 // archive email
                 email_archive_marker(row.getAttribute("data-id"), !archived);
+                // add marked rows in array
+                mark_rows.push(row);
             }
+        })
+
+        // load inbox when animation of last row is over
+        const last_row = mark_rows[mark_rows.length - 1]
+        last_row.addEventListener("animationend", () => {
+            load_mailbox('inbox');
+        })
+        // run animations
+        mark_rows.forEach(row => {
+            row.style.animationPlayState = "running";
         })
     }
 
@@ -324,6 +370,9 @@ function archive_click_handler(mailbox, archived, email) {
         // archive email
         email_archive_marker(email.id, !email.archived)
     }
+
+    // load inbox page
+    //load_mailbox('inbox');
 }
 
 
@@ -335,8 +384,6 @@ function email_archive_marker(id, value) {
             'archived': value
         })
     })
-    // load inbox page
-    .then(response => load_mailbox('inbox'))
     .catch(error => {
     console.log('Error:', error);
     });

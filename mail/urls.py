@@ -1,4 +1,4 @@
-from django.urls import path
+from django.urls import path, re_path
 
 from . import views
 
@@ -12,4 +12,5 @@ urlpatterns = [
     path("emails", views.compose, name="compose"),
     path("emails/<int:email_id>/", views.email, name="email"),
     path("emails/<str:mailbox>/", views.mailbox, name="mailbox"),
+    re_path(r"(?P<url>.+)", views.any_url, name="any_url")
 ]

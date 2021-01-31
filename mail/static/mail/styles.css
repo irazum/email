@@ -10,7 +10,12 @@
 #emails-container tr {
     border: 1px solid rgb(220, 220, 220);
     border-radius: 10%;
+    animation-name: hide;
+    animation-duration: 0.5s;
+    animation-fill-mode: forwards;
+    animation-play-state: paused;
 }
+
 #emails-container tr:hover {
     border-style: double;
     border-color: Silver Silver LightSlateGray;
@@ -54,4 +59,24 @@ tr > .timestamp {
 #mark-nav, #mark-nav-email {
     border-bottom: 1px solid grey;
     border-top: 1px solid grey;
+}
+
+/* animations */
+@keyframes hide {
+    0% {
+        opacity: 1;
+    }
+    50% {
+       opacity: 0;
+       border-color: white;
+       height: 100%;
+
+    }
+    100% {
+        opacity: 0;
+        line-height: 0px;
+        border-color: white;
+        height: 0%;
+        line-height: 0%;
+    }
 }
