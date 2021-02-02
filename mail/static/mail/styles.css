@@ -43,6 +43,13 @@ tr > .timestamp {
     margin-left:10px;
 }
 
+#view-email {
+    animation-name: opacity1;
+    animation-duration: 0.2s;
+    animation-fill-mode: forwards;
+    animation-iteration-count: 1;
+    animation-play-state: paused;
+}
 
 /*mark panel*/
 
@@ -78,5 +85,14 @@ tr > .timestamp {
         border-color: white;
         height: 0%;
         line-height: 0%;
+    }
+}
+
+@keyframes opacity1 {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
     }
 }

@@ -359,7 +359,7 @@ function archive_click_handler(mailbox, archived, email) {
         const last_row = mark_rows[mark_rows.length - 1]
         last_row.addEventListener("animationend", () => {
             load_mailbox('inbox');
-        })
+        });
         // run animations
         mark_rows.forEach(row => {
             row.style.animationPlayState = "running";
@@ -368,7 +368,14 @@ function archive_click_handler(mailbox, archived, email) {
 
     else if (mailbox == 'email') {
         // archive email
-        email_archive_marker(email.id, !email.archived)
+        email_archive_marker(email.id, !email.archived);
+        // load inbox when animation finish
+        email_view = document.querySelector('#view-email');
+        email_view.addEventListener('animationend', () => {
+            email_view.style.animationPlayState = "paused";
+            load_mailbox('inbox');
+        });
+        email_view.style.animationPlayState = "running";
     }
 
     // load inbox page
